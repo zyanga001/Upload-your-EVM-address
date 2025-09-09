@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地址转Excel生成器</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Hide scrollbar but allow scrolling */
+        textarea::-webkit-scrollbar {
+            display: none;
+        }
+
+        .gradient-bg {
+            background: radial-gradient(at top left, #a5b4fc, #6366f1);
+        }
+    </style>
+</head>
+
+<body class="gradient-bg flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-2xl">
+        <div class="flex items-center justify-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-600 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <path d="M9 3v18"></path>
+                <path d="M15 3v18"></path>
+                <path d="M3 9h18"></path>
+                <path d="M3 15h18"></path>
+            </svg>
+            <h1 class="text-3xl font-extrabold text-center text-gray-800">地址转Excel生成器</h1>
+        </div>
+        
+        <p class="text-center text-gray-600 mb-8">
+            请在下方粘贴您的地址列表，一行一个。本工具在本地运行，您的数据是安全的。
+        </p>
+
+        <!-- Input Area -->
+        <div id="inputSection" class="mb-6 space-y-3">
+            <textarea id="addressInput" rows="10" placeholder="请在此处粘贴地址，一行一个..."
+                class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"></textarea>
+            <input type="text" id="keywordInput" placeholder="第二列关键词（可选，例如：'Four'）..."
+                class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-sm">
+        </div>
+
+        <!-- Action Button -->
+        <button id="generateBtn"
+            class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 active:bg-blue-800">
+            生成下载链接
+        </button>
+
+        <!-- Download Links Container -->
+        <div id="downloadLinksContainer" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+        <!-- Status and Info Message -->
+        <div id="statusMessage" class="mt-6 text-center text-sm font-medium text-gray-700 hidden"></div>
+    </div>
+
+    <!-- Include xlsx.full.min.js -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addressInput = document.getElementById('addressInput');
+            const keywordInput = document.getElementById('keywordInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            const downloadLinksContainer = document.getElementById('downloadLinksContainer');
+
+            generateBtn.addEventListener('click', () => {
+                const addressesText = addressInput.value.trim();
+                const keyword = keywordInput.value.trim();
+                const addresses = addressesText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                
+                // Set the number of addresses per sheet to 50
+                const batchSize = 50; 
+
+                // Simple input validation
+                if (addresses.length === 0) {
+                    showStatus('请先粘贴地址！', 'text-red-500');
+                    return;
+                }
+                
+                // Clear previous download links
+                downloadLinksContainer.innerHTML = '';
+                showStatus('已生成下载链接，请点击下载。', 'text-green-500');
+
+                // Split addresses into batches and create download links
+                let fileCount = 0;
+                for (let i = 0; i < addresses.length; i += batchSize) {
+                    fileCount++;
+                    const batch = addresses.slice(i, i + batchSize);
+                    const fileName = `地址列表_${fileCount}.xlsx`;
+
+                    // Create a download button for each file
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = `下载文件 ${fileCount}`;
+                    downloadButton.className = 'w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 active:bg-blue-700';
+                    
+                    // Add a click event listener to each button
+                    downloadButton.addEventListener('click', () => {
+                        // Build the data array, including headers and addresses
+                        const data = [
+                            ['Address', 'AddressName'], // Headers
+                            ...batch.map((addr, index) => {
+                                // Calculate the global index to ensure continuous numbering
+                                const globalIndex = i + index + 1;
+                                const addressName = keyword ? `${keyword}${globalIndex}` : '';
+                                return [addr, addressName];
+                            })
+                        ];
+
+                        // Create a new workbook and worksheet
+                        const workbook = XLSX.utils.book_new();
+                        const worksheet = XLSX.utils.aoa_to_sheet(data);
+                        
+                        // Add the worksheet to the workbook
+                        XLSX.utils.book_append_sheet(workbook, worksheet, `地址列表${fileCount}`);
+                        
+                        // Write the workbook to a file and trigger download
+                        try {
+                            XLSX.writeFile(workbook, fileName);
+                            showStatus(`文件 ${fileName} 已下载！`, 'text-blue-500');
+                        } catch (error) {
+                            console.error("Error generating file:", error);
+                            showStatus('文件生成失败。请检查浏览器设置或联系开发者。', 'text-red-500');
+                        }
+                    });
+
+                    downloadLinksContainer.appendChild(downloadButton);
+                }
+            });
+
+            function showStatus(message, colorClass) {
+                statusMessage.textContent = message;
+                statusMessage.className = `mt-6 text-center text-sm font-medium ${colorClass}`;
+                statusMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
