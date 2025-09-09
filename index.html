@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地址转Excel生成器</title>
+    <title>Upload your EVM address</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -33,25 +33,25 @@
                 <path d="M3 9h18"></path>
                 <path d="M3 15h18"></path>
             </svg>
-            <h1 class="text-3xl font-extrabold text-center text-gray-800">地址转Excel生成器</h1>
+            <h1 class="text-3xl font-extrabold text-center text-gray-800">Upload your EVM address</h1>
         </div>
         
         <p class="text-center text-gray-600 mb-8">
-            请在下方粘贴您的地址列表，一行一个。本工具在本地运行，您的数据是安全的。
+            请在下方粘贴您的地址列表，一行一个。本工具在本地运行，您上传的数据是安全的。
         </p>
 
         <!-- Input Area -->
         <div id="inputSection" class="mb-6 space-y-3">
             <textarea id="addressInput" rows="10" placeholder="请在此处粘贴地址，一行一个..."
                 class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"></textarea>
-            <input type="text" id="keywordInput" placeholder="第二列关键词（可选，例如：'Four'）..."
+            <input type="text" id="keywordInput" placeholder="命名关键词（可为空，例如：'地址'）..."
                 class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-sm">
         </div>
 
         <!-- Action Button -->
         <button id="generateBtn"
             class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 active:bg-blue-800">
-            生成下载链接
+            生成下载文件
         </button>
 
         <!-- Download Links Container -->
@@ -88,7 +88,7 @@
                 
                 // Clear previous download links
                 downloadLinksContainer.innerHTML = '';
-                showStatus('已生成下载链接，请点击下载。', 'text-green-500');
+                showStatus('已生成下载文件，请点击下载。', 'text-green-500');
 
                 // Split addresses into batches and create download links
                 let fileCount = 0;
